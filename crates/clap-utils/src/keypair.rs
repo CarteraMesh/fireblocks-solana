@@ -13,7 +13,7 @@ use {
     crate::{
         input_parsers::{pubkeys_sigs_of, STDOUT_OUTFILE_TOKEN},
         offline::{SIGNER_ARG, SIGN_ONLY_ARG},
-        ArgConstant,
+        ArgConstant, DynSigner,
     },
     bip39::{Language, Mnemonic, Seed},
     clap::ArgMatches,
@@ -65,7 +65,7 @@ impl SignOnly {
         presigner_from_pubkey_sigs(pubkey, &self.present_signers)
     }
 }
-pub type CliSigners = Vec<Box<dyn Signer>>;
+pub type CliSigners = Vec<Box<DynSigner>>;
 pub type SignerIndex = usize;
 pub struct CliSignerInfo {
     pub signers: CliSigners,
@@ -90,7 +90,7 @@ impl CliSignerInfo {
             None
         }
     }
-    pub fn signers_for_message(&self, message: &Message) -> Vec<&dyn Signer> {
+    pub fn signers_for_message(&self, message: &Message) -> Vec<&DynSigner> {
         self.signers
             .iter()
             .filter_map(|k| {
@@ -238,7 +238,7 @@ impl DefaultSigner {
     /// ```
     pub fn generate_unique_signers(
         &self,
-        bulk_signers: Vec<Option<Box<dyn Signer>>>,
+        bulk_signers: Vec<Option<Box<DynSigner>>>,
         matches: &ArgMatches<'_>,
         wallet_manager: &mut Option<Rc<RemoteWalletManager>>,
     ) -> Result<CliSignerInfo, Box<dyn error::Error>> {
@@ -303,7 +303,7 @@ impl DefaultSigner {
         &self,
         matches: &ArgMatches,
         wallet_manager: &mut Option<Rc<RemoteWalletManager>>,
-    ) -> Result<Box<dyn Signer>, Box<dyn std::error::Error>> {
+    ) -> Result<Box<DynSigner>, Box<dyn std::error::Error>> {
         signer_from_path(matches, self.path()?, &self.arg_name, wallet_manager)
     }
 
@@ -357,7 +357,7 @@ impl DefaultSigner {
         matches: &ArgMatches,
         wallet_manager: &mut Option<Rc<RemoteWalletManager>>,
         config: &SignerFromPathConfig,
-    ) -> Result<Box<dyn Signer>, Box<dyn std::error::Error>> {
+    ) -> Result<Box<DynSigner>, Box<dyn std::error::Error>> {
         signer_from_path_with_config(
             matches,
             self.path()?,
@@ -399,12 +399,17 @@ const SIGNER_SOURCE_USB: &str = "usb";
 const SIGNER_SOURCE_STDIN: &str = "stdin";
 const SIGNER_SOURCE_PUBKEY: &str = "pubkey";
 
+#[cfg(feature = "fireblocks")]
+const SIGNER_SOURCE_FIREBLOCKS: &str = "fireblocks";
+
 pub(crate) enum SignerSourceKind {
     Prompt,
     Filepath(String),
     Usb(RemoteWalletLocator),
     Stdin,
     Pubkey(Pubkey),
+    #[cfg(feature = "fireblocks")]
+    Fireblocks(String),
 }
 
 impl AsRef<str> for SignerSourceKind {
@@ -415,6 +420,8 @@ impl AsRef<str> for SignerSourceKind {
             Self::Usb(_) => SIGNER_SOURCE_USB,
             Self::Stdin => SIGNER_SOURCE_STDIN,
             Self::Pubkey(_) => SIGNER_SOURCE_PUBKEY,
+            #[cfg(feature = "fireblocks")]
+            Self::Fireblocks(_) => SIGNER_SOURCE_FIREBLOCKS,
         }
     }
 }
@@ -481,6 +488,13 @@ pub(crate) fn parse_signer_source<S: AsRef<str>>(
                         legacy: false,
                     }),
                     SIGNER_SOURCE_STDIN => Ok(SignerSource::new(SignerSourceKind::Stdin)),
+                    #[cfg(feature = "fireblocks")]
+                    SIGNER_SOURCE_FIREBLOCKS => {
+                        Ok(SignerSource::new(SignerSourceKind::Fireblocks(
+                            uri.host()
+                                .map_or_else(|| String::from("default"), |h| h.to_string()),
+                        )))
+                    }
                     _ => {
                         #[cfg(target_family = "windows")]
                         // On Windows, an absolute path's drive letter will be parsed as the URI
@@ -686,7 +700,7 @@ pub fn signer_from_path(
     path: &str,
     keypair_name: &str,
     wallet_manager: &mut Option<Rc<RemoteWalletManager>>,
-) -> Result<Box<dyn Signer>, Box<dyn error::Error>> {
+) -> Result<Box<DynSigner>, Box<dyn error::Error>> {
     let config = SignerFromPathConfig::default();
     signer_from_path_with_config(matches, path, keypair_name, wallet_manager, &config)
 }
@@ -754,7 +768,7 @@ pub fn signer_from_path_with_config(
     keypair_name: &str,
     wallet_manager: &mut Option<Rc<RemoteWalletManager>>,
     config: &SignerFromPathConfig,
-) -> Result<Box<dyn Signer>, Box<dyn error::Error>> {
+) -> Result<Box<DynSigner>, Box<dyn error::Error>> {
     let SignerSource {
         kind,
         derivation_path,
@@ -812,7 +826,11 @@ pub fn signer_from_path_with_config(
                 )
                 .into())
             }
-        }
+        },
+        #[cfg(feature = "fireblocks")]
+        SignerSourceKind::Fireblocks(profile) => {
+            Ok(Box::new(fireblocks_solana_signer::FireblocksSigner::try_from_config(&[profile], |tx| log::info!("{tx}"))?))
+        },
     }
 }
 
@@ -1139,10 +1157,10 @@ mod tests {
             Some(&fee_payer.pubkey()),
         );
         let signers = vec![
-            Box::new(fee_payer) as Box<dyn Signer>,
-            Box::new(source) as Box<dyn Signer>,
-            Box::new(nonsigner1) as Box<dyn Signer>,
-            Box::new(nonsigner2) as Box<dyn Signer>,
+            Box::new(fee_payer) as Box<DynSigner>,
+            Box::new(source) as Box<DynSigner>,
+            Box::new(nonsigner1) as Box<DynSigner>,
+            Box::new(nonsigner2) as Box<DynSigner>,
         ];
         let signer_info = CliSignerInfo { signers };
         let msg_signers = signer_info.signers_for_message(&message);
@@ -1269,6 +1287,23 @@ mod tests {
                 derivation_path: None,
                 legacy: false,
             } if p == relative_path_str)
+        );
+
+        #[cfg(feature = "fireblocks")]
+        assert!(
+            matches!(parse_signer_source("fireblocks://default".to_string()).unwrap(), SignerSource {
+                kind: SignerSourceKind::Fireblocks(p),
+                derivation_path: None,
+                legacy: false,
+            } if p == "default")
+        );
+        #[cfg(feature = "fireblocks")]
+        assert!(
+            matches!(parse_signer_source("fireblocks://sandbox".to_string()).unwrap(), SignerSource {
+                kind: SignerSourceKind::Fireblocks(p),
+                derivation_path: None,
+                legacy: false,
+            } if p == "sandbox")
         );
     }
 

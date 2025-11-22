@@ -1,7 +1,9 @@
+#![allow(unused_imports)]
 use {
     crate::{
         address_lookup_table::*, clap_app::*, cluster_query::*, feature::*, inflation::*, nonce::*,
         program::*, program_v4::*, spend_utils::*, stake::*, validator_info::*, vote::*, wallet::*,
+        DynSigner,
     },
     clap::{crate_description, crate_name, value_t_or_exit, ArgMatches, Shell},
     log::*,
@@ -528,7 +530,7 @@ pub struct CliConfig<'a> {
     pub websocket_url: String,
     pub keypair_path: String,
     pub commitment: CommitmentConfig,
-    pub signers: Vec<&'a dyn Signer>,
+    pub signers: Vec<&'a DynSigner>,
     pub rpc_client: Option<Arc<RpcClient>>,
     pub rpc_timeout: Duration,
     pub verbose: bool,
@@ -1861,7 +1863,7 @@ mod tests {
         let keypair0_pubkey = keypair0.pubkey();
         let keypair0_clone = keypair_from_seed(&[1u8; 32]).unwrap();
         let keypair0_clone_pubkey = keypair0.pubkey();
-        let signers: Vec<Option<Box<dyn Signer>>> = vec![
+        let signers: Vec<Option<Box<DynSigner>>> = vec![
             None,
             Some(Box::new(keypair0)),
             Some(Box::new(keypair0_clone)),
@@ -1877,7 +1879,7 @@ mod tests {
         let keypair0 = keypair_from_seed(&[1u8; 32]).unwrap();
         let keypair0_pubkey = keypair0.pubkey();
         let keypair0_clone = keypair_from_seed(&[1u8; 32]).unwrap();
-        let signers: Vec<Option<Box<dyn Signer>>> =
+        let signers: Vec<Option<Box<DynSigner>>> =
             vec![Some(Box::new(keypair0)), Some(Box::new(keypair0_clone))];
         let signer_info = default_signer
             .generate_unique_signers(signers, &matches, &mut None)
@@ -1895,7 +1897,7 @@ mod tests {
         let presigner0_pubkey = presigner0.pubkey();
         let presigner1 = Presigner::new(&keypair1.pubkey(), &keypair1.sign_message(&message));
         let presigner1_pubkey = presigner1.pubkey();
-        let signers: Vec<Option<Box<dyn Signer>>> = vec![
+        let signers: Vec<Option<Box<DynSigner>>> = vec![
             Some(Box::new(keypair0)),
             Some(Box::new(presigner0)),
             Some(Box::new(presigner1)),

@@ -2,7 +2,7 @@
 edition = "2021"
 license = "MIT"
 repository = "https://github.com/carteraMesh/fireblocks-solana-cli"
-version = "3.0.10"
+version = "3.0.11"
 authors = ["me"]
 homepage = "https://github.com/carteraMesh/fireblocks-solana-cli"
 
@@ -46,82 +46,82 @@ uriparse = "0.6.4"
 url = "2.5.4"
 rpassword = "7.4"
 
-solana-account = "3.0.0"
+solana-account = "3"
 solana-account-decoder = { version = "3" }
 solana-address-lookup-table-interface = "3"
-solana-borsh = "3.0.0"
+solana-borsh = "3"
 solana-client = { version = "3" }
-solana-cli-output = { version = "3.0.10" }
-solana-clock = "3.0.0"
-solana-cluster-type = "3.0.0"
-solana-commitment-config = "3.0.0"
-solana-compute-budget-interface = "3.0.0"
+solana-cli-output = { version = "3" }
+solana-clock = "3"
+solana-cluster-type = "3"
+solana-commitment-config = "3"
+solana-compute-budget-interface = "3"
 solana-config-interface = "2.0.0"
 solana-connection-cache = { version = "3", default-features = false }
-solana-derivation-path = "3.0.0"
-solana-epoch-schedule = "3.0.0"
+solana-derivation-path = "3"
+solana-epoch-schedule = "3"
 solana-faucet = { version = "3" }
-solana-feature-gate-interface = "3.0.0"
-solana-fee-calculator = "3.0.0"
-solana-fee-structure = "3.0.0"
-solana-hash = "3.0.0"
-solana-instruction = "3.0.0"
-solana-keypair = "3.0.0"
+solana-feature-gate-interface = "3"
+solana-fee-calculator = "3"
+solana-fee-structure = "3"
+solana-hash = "3"
+solana-instruction = "3"
+solana-keypair = "3"
 solana-loader-v3-interface = "6.1.0"
 solana-loader-v4-interface = "3.1.0"
-solana-loader-v4-program = { version = "3.0.10" }
-solana-logger = "3.0.0"
-solana-message = "3.0.0"
-solana-native-token = "3.0.0"
-solana-nonce = "3.0.0"
-solana-nonce-account = "3.0.0"
-solana-offchain-message = "3.0.0"
-solana-packet = "3.0.0"
-solana-presigner = "3.0.0"
-solana-program-runtime = {  version = "=3.0.10" }
+solana-loader-v4-program = { version = "3" }
+solana-logger = "3"
+solana-message = "3"
+solana-native-token = "3"
+solana-nonce = "3"
+solana-nonce-account = "3"
+solana-offchain-message = "3"
+solana-packet = "3"
+solana-presigner = "3"
+solana-program-runtime = {  version = "3" }
 solana-pubkey = { version = "3", default-features = false }
-solana-pubsub-client = { version = "3.0.10" }
-solana-quic-client = { version = "3.0.10" }
-solana-remote-wallet = {version = "3.0.10", default-features = false }
-solana-rent = "3.0.0"
-solana-rpc = { version = "3.0.10" }
-solana-rpc-client = { version = "3.0.10", default-features = false }
-solana-rpc-client-api = {version = "3.0.10" }
-solana-rpc-client-nonce-utils = { version = "3.0.10" }
+solana-pubsub-client = { version = "3" }
+solana-quic-client = { version = "3" }
+solana-remote-wallet = {version = "3", default-features = false }
+solana-rent = "3"
+solana-rpc = { version = "3" }
+solana-rpc-client = { version = "3", default-features = false }
+solana-rpc-client-api = {version = "3" }
+solana-rpc-client-nonce-utils = { version = "3" }
 solana-sbpf = { version = "=0.12.2", default-features = false }
-solana-sdk-ids = "3.0.0"
-solana-sha256-hasher = "3.0.0"
-solana-seed-derivable = "3.0.0"
-solana-seed-phrase = "3.0.0"
-solana-signature = { version = "3.1.0", default-features = false }
-solana-signer = "3.0.0"
-solana-slot-history = "3.0.0"
+solana-sdk-ids = "3"
+solana-sha256-hasher = "3"
+solana-seed-derivable = "3"
+solana-seed-phrase = "3"
+solana-signature = { version = "3", default-features = false }
+solana-signer = "3"
+solana-slot-history = "3"
 solana-stake-interface = { version = "2.0.1" }
-solana-streamer = { version = "3.0.10" }
+solana-streamer = { version = "3" }
 solana-system-interface = "2.0"
-solana-sysvar = "3.0.0"
-solana-test-validator = { version = "3.0.10" }
-solana-tps-client = { version = "3.0.10" }
-solana-tpu-client = { version = "3.0.10", default-features = false }
+solana-sysvar = "3"
+solana-test-validator = { version = "3" }
+solana-tps-client = { version = "3" }
+solana-tpu-client = { version = "3", default-features = false }
 solana-transaction = "3"
-solana-transaction-error = "3.0.0"
-solana-transaction-status = { version = "3.0.10" }
-solana-transaction-status-client-types = { version = "3.0.10" }
-solana-udp-client = { version = "3.0.10" }
-solana-version = { version = "3.0.10" }
-solana-vote-program = { version = "3.0.10", default-features = false }
+solana-transaction-error = "3"
+solana-transaction-status = { version = "3" }
+solana-transaction-status-client-types = { version = "3" }
+solana-udp-client = { version = "3" }
+solana-version = { version = "3" }
+solana-vote-program = { version = "3", default-features = false }
 solana-zk-sdk = "4.0.0"
 spl-memo-interface = { version = "=2.0.0" }
 
-solana-clap-utils = { path = "crates/clap-utils", version = "=3.0.10" }
-solana-clap-v3-utils = { path = "crates/clap-v3-utils", version = "=3.0.10" }
+solana-clap-utils = { path = "crates/clap-utils", version = "=3.0.11" }
+solana-clap-v3-utils = { path = "crates/clap-v3-utils", version = "=3.0.11" }
 solana-cli-config = { version = "3.0.10" }
 
 assert_matches = "1.5.0"
 tempfile = "3.20.0"
 test-case = "3.3.1"
 
-fireblocks-solana-signer = { version = "1.0.17" }
+fireblocks-solana-signer = { version = "1" }
 
 [workspace.lints.rust]
 warnings = "deny"
