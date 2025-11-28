@@ -1,8 +1,5 @@
 use {
-    crate::{
-        cli::{CliCommand, CliCommandInfo, CliConfig, CliError, ProcessResult},
-        DynSigner,
-    },
+    crate::cli::{CliCommand, CliCommandInfo, CliConfig, CliError, ProcessResult},
     clap::{App, AppSettings, Arg, ArgMatches, SubCommand},
     solana_account::from_account,
     solana_address_lookup_table_interface::{
@@ -561,7 +558,7 @@ fn process_create_lookup_table(
         Some(&config.signers[0].pubkey()),
     ));
 
-    let keypairs: Vec<&DynSigner> = vec![config.signers[0], payer_signer];
+    let keypairs: Vec<&dyn Signer> = vec![config.signers[0], payer_signer];
     tx.try_sign(&keypairs, blockhash)?;
     let result = rpc_client.send_and_confirm_transaction_with_spinner_and_config(
         &tx,

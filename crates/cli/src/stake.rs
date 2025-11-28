@@ -1527,9 +1527,9 @@ pub fn process_create_stake_account(
         )
     } else {
         // Fireblocks needs all signers to sign before fireblocks can sign
-        #[cfg(feature = "fireblocks")]
-        crate::fireblocks_sign!(tx, &config.signers, recent_blockhash);
-        #[cfg(not(feature = "fireblocks"))]
+        //        #[cfg(feature = "fireblocks")]
+        //      crate::fireblocks_sign!(tx, &config.signers, recent_blockhash);
+        //    #[cfg(not(feature = "fireblocks"))]
         tx.try_sign(&config.signers, recent_blockhash)?;
         let result = rpc_client.send_and_confirm_transaction_with_spinner_and_config(
             &tx,

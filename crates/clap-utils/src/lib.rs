@@ -1,8 +1,3 @@
-#[cfg(feature = "fireblocks")]
-pub use fireblocks_solana_signer::DynSigner;
-#[cfg(not(feature = "fireblocks"))]
-pub type DynSigner = dyn solana_signer::Signer;
-
 use thiserror::Error;
 
 pub struct ArgConstant<'a> {

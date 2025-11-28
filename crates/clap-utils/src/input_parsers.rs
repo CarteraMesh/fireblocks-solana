@@ -1,10 +1,7 @@
 use {
-    crate::{
-        keypair::{
-            keypair_from_seed_phrase, pubkey_from_path, resolve_signer_from_path, signer_from_path,
-            ASK_KEYWORD, SKIP_SEED_PHRASE_VALIDATION_ARG,
-        },
-        DynSigner,
+    crate::keypair::{
+        keypair_from_seed_phrase, pubkey_from_path, resolve_signer_from_path, signer_from_path,
+        ASK_KEYWORD, SKIP_SEED_PHRASE_VALIDATION_ARG,
     },
     chrono::DateTime,
     clap::ArgMatches,
@@ -127,7 +124,7 @@ pub fn signer_of(
     matches: &ArgMatches<'_>,
     name: &str,
     wallet_manager: &mut Option<Rc<RemoteWalletManager>>,
-) -> Result<(Option<Box<DynSigner>>, Option<Pubkey>), Box<dyn std::error::Error>> {
+) -> Result<(Option<Box<dyn Signer>>, Option<Pubkey>), Box<dyn std::error::Error>> {
     if let Some(location) = matches.value_of(name) {
         let signer = signer_from_path(matches, location, name, wallet_manager)?;
         let signer_pubkey = signer.pubkey();

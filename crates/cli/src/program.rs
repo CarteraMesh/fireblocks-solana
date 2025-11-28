@@ -10,7 +10,6 @@ use {
             UpdateComputeUnitLimitResult, WithComputeUnitConfig,
         },
         feature::{status_from_account, CliFeatureStatus},
-        DynSigner,
     },
     agave_feature_set::{raise_cpi_nesting_limit_to_8, FeatureSet, FEATURE_NAMES},
     agave_syscalls::create_program_runtime_environment_v1,
@@ -1316,7 +1315,7 @@ fn process_program_deploy(
     } else {
         (
             false,
-            Some(&buffer_keypair as &DynSigner),
+            Some(&buffer_keypair as &dyn Signer),
             buffer_keypair.pubkey(),
         )
     };
@@ -1328,7 +1327,7 @@ fn process_program_deploy(
         (None, program_pubkey)
     } else {
         (
-            Some(&default_program_keypair as &DynSigner),
+            Some(&default_program_keypair as &dyn Signer),
             default_program_keypair.pubkey(),
         )
     };
@@ -1716,7 +1715,7 @@ fn process_write_buffer(
     } else if let Some(pubkey) = buffer_pubkey {
         (None, pubkey)
     } else {
-        (Some(&buffer_keypair as &DynSigner), buffer_keypair.pubkey())
+        (Some(&buffer_keypair as &dyn Signer), buffer_keypair.pubkey())
     };
 
     let buffer_program_data = fetch_buffer_program_data(
@@ -2200,7 +2199,7 @@ fn close(
     config: &CliConfig,
     account_pubkey: &Pubkey,
     recipient_pubkey: &Pubkey,
-    authority_signer: &DynSigner,
+    authority_signer: &dyn Signer,
     program_pubkey: Option<&Pubkey>,
 ) -> Result<(), Box<dyn std::error::Error>> {
     let blockhash = rpc_client.get_latest_blockhash()?;
@@ -2597,12 +2596,12 @@ fn do_process_program_deploy(
     program_len: usize,
     program_data_max_len: usize,
     min_rent_exempt_program_data_balance: u64,
-    fee_payer_signer: &DynSigner,
-    program_signers: &[&DynSigner],
-    buffer_signer: Option<&DynSigner>,
+    fee_payer_signer: &dyn Signer,
+    program_signers: &[&dyn Signer],
+    buffer_signer: Option<&dyn Signer>,
     buffer_pubkey: &Pubkey,
     buffer_program_data: Option<Vec<u8>>,
-    buffer_authority_signer: &DynSigner,
+    buffer_authority_signer: &dyn Signer,
     skip_fee_check: bool,
     compute_unit_price: Option<u64>,
     max_sign_attempts: usize,
@@ -2731,11 +2730,11 @@ fn do_process_write_buffer(
     program_data: &[u8], // can be empty, hence we have program_len
     program_len: usize,
     min_rent_exempt_program_data_balance: u64,
-    fee_payer_signer: &DynSigner,
-    buffer_signer: Option<&DynSigner>,
+    fee_payer_signer: &dyn Signer,
+    buffer_signer: Option<&dyn Signer>,
     buffer_pubkey: &Pubkey,
     buffer_program_data: Option<Vec<u8>>,
-    buffer_authority_signer: &DynSigner,
+    buffer_authority_signer: &dyn Signer,
     skip_fee_check: bool,
     compute_unit_price: Option<u64>,
     max_sign_attempts: usize,
@@ -2839,11 +2838,11 @@ fn do_process_program_upgrade(
     program_data: &[u8], // can be empty, hence we have program_len
     program_len: usize,
     min_rent_exempt_program_data_balance: u64,
-    fee_payer_signer: &DynSigner,
+    fee_payer_signer: &dyn Signer,
     program_id: &Pubkey,
-    upgrade_authority: &DynSigner,
+    upgrade_authority: &dyn Signer,
     buffer_pubkey: &Pubkey,
-    buffer_signer: Option<&DynSigner>,
+    buffer_signer: Option<&dyn Signer>,
     buffer_program_data: Option<Vec<u8>>,
     skip_fee_check: bool,
     compute_unit_price: Option<u64>,
@@ -3128,10 +3127,10 @@ fn send_deploy_messages(
     initial_message: Option<Message>,
     mut write_messages: Vec<Message>,
     final_message: Option<Message>,
-    fee_payer_signer: &DynSigner,
-    initial_signer: Option<&DynSigner>,
-    write_signer: Option<&DynSigner>,
-    final_signers: Option<&[&DynSigner]>,
+    fee_payer_signer: &dyn Signer,
+    initial_signer: Option<&dyn Signer>,
+    write_signer: Option<&dyn Signer>,
+    final_signers: Option<&[&dyn Signer]>,
     max_sign_attempts: usize,
     use_rpc: bool,
     compute_unit_limit: &ComputeUnitLimit,
@@ -3148,25 +3147,11 @@ fn send_deploy_messages(
             // This check is to ensure signing does not fail on a KeypairPubkeyMismatch error from an
             // extraneous signature.
             if message.header.num_required_signatures == 3 {
-                #[cfg(feature = "fireblocks")]
-                crate::fireblocks_sign!(
-                    initial_transaction,
-                    &[fee_payer_signer, initial_signer, write_signer.unwrap()],
-                    blockhash
-                );
-                #[cfg(not(feature = "fireblocks"))]
                 initial_transaction.try_sign(
                     &[fee_payer_signer, initial_signer, write_signer.unwrap()],
                     blockhash,
                 )?;
             } else if message.header.num_required_signatures == 2 {
-                #[cfg(feature = "fireblocks")]
-                crate::fireblocks_sign!(
-                    initial_transaction,
-                    &[fee_payer_signer, initial_signer],
-                    blockhash
-                );
-                #[cfg(not(feature = "fireblocks"))]
                 initial_transaction.try_sign(&[fee_payer_signer, initial_signer], blockhash)?;
             } else {
                 initial_transaction.try_sign(&[fee_payer_signer], blockhash)?;
@@ -3280,9 +3265,9 @@ fn send_deploy_messages(
             let blockhash = rpc_client.get_latest_blockhash()?;
             let mut signers = final_signers.to_vec();
             signers.push(fee_payer_signer);
-            #[cfg(feature = "fireblocks")]
-            crate::fireblocks_sign!(final_tx, &signers, blockhash);
-            #[cfg(not(feature = "fireblocks"))]
+            //            #[cfg(feature = "fireblocks")]
+            //            crate::fireblocks_sign!(final_tx, &signers, blockhash);
+            //          #[cfg(not(feature = "fireblocks"))]
             final_tx.try_sign(&signers, blockhash)?;
             return Ok(Some(
                 rpc_client

@@ -13,7 +13,7 @@ use {
     crate::{
         input_parsers::{pubkeys_sigs_of, STDOUT_OUTFILE_TOKEN},
         offline::{SIGNER_ARG, SIGN_ONLY_ARG},
-        ArgConstant, DynSigner,
+        ArgConstant,
     },
     bip39::{Language, Mnemonic, Seed},
     clap::ArgMatches,
@@ -65,7 +65,7 @@ impl SignOnly {
         presigner_from_pubkey_sigs(pubkey, &self.present_signers)
     }
 }
-pub type CliSigners = Vec<Box<DynSigner>>;
+pub type CliSigners = Vec<Box<dyn Signer>>;
 pub type SignerIndex = usize;
 pub struct CliSignerInfo {
     pub signers: CliSigners,
@@ -90,7 +90,7 @@ impl CliSignerInfo {
             None
         }
     }
-    pub fn signers_for_message(&self, message: &Message) -> Vec<&DynSigner> {
+    pub fn signers_for_message(&self, message: &Message) -> Vec<&dyn Signer> {
         self.signers
             .iter()
             .filter_map(|k| {
@@ -238,7 +238,7 @@ impl DefaultSigner {
     /// ```
     pub fn generate_unique_signers(
         &self,
-        bulk_signers: Vec<Option<Box<DynSigner>>>,
+        bulk_signers: Vec<Option<Box<dyn Signer>>>,
         matches: &ArgMatches<'_>,
         wallet_manager: &mut Option<Rc<RemoteWalletManager>>,
     ) -> Result<CliSignerInfo, Box<dyn error::Error>> {
@@ -303,7 +303,7 @@ impl DefaultSigner {
         &self,
         matches: &ArgMatches,
         wallet_manager: &mut Option<Rc<RemoteWalletManager>>,
-    ) -> Result<Box<DynSigner>, Box<dyn std::error::Error>> {
+    ) -> Result<Box<dyn Signer>, Box<dyn std::error::Error>> {
         signer_from_path(matches, self.path()?, &self.arg_name, wallet_manager)
     }
 
@@ -357,7 +357,7 @@ impl DefaultSigner {
         matches: &ArgMatches,
         wallet_manager: &mut Option<Rc<RemoteWalletManager>>,
         config: &SignerFromPathConfig,
-    ) -> Result<Box<DynSigner>, Box<dyn std::error::Error>> {
+    ) -> Result<Box<dyn Signer>, Box<dyn std::error::Error>> {
         signer_from_path_with_config(
             matches,
             self.path()?,
@@ -658,6 +658,7 @@ pub struct SignerFromPathConfig {
 /// then the signer is created by reading that file as a JSON-serialized
 /// keypair. This is the same as the `file:` URI scheme.
 ///
+
 /// [qs]: https://en.wikipedia.org/wiki/Query_string
 /// [dp]: https://github.com/bitcoin/bips/blob/master/bip-0044.mediawiki
 /// [URI]: https://en.wikipedia.org/wiki/Uniform_Resource_Identifier
@@ -700,7 +701,7 @@ pub fn signer_from_path(
     path: &str,
     keypair_name: &str,
     wallet_manager: &mut Option<Rc<RemoteWalletManager>>,
-) -> Result<Box<DynSigner>, Box<dyn error::Error>> {
+) -> Result<Box<dyn Signer>, Box<dyn error::Error>> {
     let config = SignerFromPathConfig::default();
     signer_from_path_with_config(matches, path, keypair_name, wallet_manager, &config)
 }
@@ -768,7 +769,7 @@ pub fn signer_from_path_with_config(
     keypair_name: &str,
     wallet_manager: &mut Option<Rc<RemoteWalletManager>>,
     config: &SignerFromPathConfig,
-) -> Result<Box<DynSigner>, Box<dyn error::Error>> {
+) -> Result<Box<dyn Signer>, Box<dyn error::Error>> {
     let SignerSource {
         kind,
         derivation_path,
@@ -1157,10 +1158,10 @@ mod tests {
             Some(&fee_payer.pubkey()),
         );
         let signers = vec![
-            Box::new(fee_payer) as Box<DynSigner>,
-            Box::new(source) as Box<DynSigner>,
-            Box::new(nonsigner1) as Box<DynSigner>,
-            Box::new(nonsigner2) as Box<DynSigner>,
+            Box::new(fee_payer) as Box<dyn Signer>,
+            Box::new(source) as Box<dyn Signer>,
+            Box::new(nonsigner1) as Box<dyn Signer>,
+            Box::new(nonsigner2) as Box<dyn Signer>,
         ];
         let signer_info = CliSignerInfo { signers };
         let msg_signers = signer_info.signers_for_message(&message);

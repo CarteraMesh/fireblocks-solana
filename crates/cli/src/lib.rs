@@ -1,8 +1,3 @@
-#[cfg(feature = "fireblocks")]
-pub use fireblocks_solana_signer::DynSigner;
-#[cfg(not(feature = "fireblocks"))]
-pub type DynSigner = dyn solana_signer::Signer;
-
 macro_rules! ACCOUNT_STRING {
     () => {
         r#" Address is one of:
@@ -45,6 +40,3 @@ pub mod test_utils;
 pub mod validator_info;
 pub mod vote;
 pub mod wallet;
-
-#[cfg(feature = "fireblocks")]
-pub mod fireblocks;
