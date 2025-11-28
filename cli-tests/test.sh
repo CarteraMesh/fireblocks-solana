@@ -3,7 +3,7 @@ set -e
 
 CONFIG="$HOME/.config/solana/cli/fb-test.yml"
 if [ -n "$1" ]; then
-    CONFIG="$1"
+  CONFIG="$1"
 fi
 ./scripts/cleanup.sh "$CONFIG" || echo "warn cleanup failed"
 ./scripts/stake.sh "$CONFIG"
