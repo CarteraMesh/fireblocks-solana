@@ -1,10 +1,10 @@
 [workspace.package]
 edition = "2021"
 license = "MIT"
-repository = "https://github.com/carteraMesh/fireblocks-solana-cli"
+repository = "https://github.com/carteraMesh/fireblocks-solana"
 version = "3.0.11"
-authors = ["me"]
-homepage = "https://github.com/carteraMesh/fireblocks-solana-cli"
+authors = ["gh@cartera-mesh.com"]
+homepage = "https://github.com/carteraMesh/fireblocks-solana"
 
 [workspace]
 members = ["crates/*"]

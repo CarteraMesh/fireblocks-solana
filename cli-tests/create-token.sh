@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 cargo run -p spl-token-cli -- --config "${1:?}" create-token \
-  --decimals 6 --with-memo 'signed by fireblocks https://github.com/carteraMesh/fireblocks-solana-cli' \
+  --decimals 6 --with-memo 'signed by fireblocks https://github.com/carteraMesh/fireblocks-solana' \
   --program-2022 \
   --enable-confidential-transfers auto \
   --enable-close \
@@ -11,6 +11,8 @@ cargo run -p spl-token-cli -- --config "${1:?}" create-token \
   ./cli-tests/token22.json
 
 cargo run -p spl-token-cli -- --config "${1}" create-token \
-  --decimals 6 --with-memo 'signed by fireblocks https://github.com/carteraMesh/fireblocks-solana-cli' \
+  --decimals 6 \
+  --enable-close \
+  --with-memo 'signed by fireblocks https://github.com/carteraMesh/fireblocks-solana' \
   --verbose \
   ./cli-tests/token.json
