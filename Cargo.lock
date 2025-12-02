@@ -2667,6 +2667,46 @@ dependencies = [
 ]
 
 [[package]]
+name = "fireblocks-spl-token-cli"
+version = "5.5.0"
+dependencies = [
+ "assert_cmd",
+ "base64 0.22.1",
+ "clap 3.2.25",
+ "console 0.16.1",
+ "fireblocks-solana-clap-v3-utils",
+ "fireblocks-solana-cli-config",
+ "fireblocks-solana-cli-output",
+ "futures 0.3.31",
+ "libtest-mimic",
+ "serde",
+ "serde_json",
+ "solana-account-decoder",
+ "solana-client",
+ "solana-commitment-config",
+ "solana-logger",
+ "solana-nonce",
+ "solana-remote-wallet",
+ "solana-sdk",
+ "solana-sdk-ids",
+ "solana-system-interface 3.0.0",
+ "solana-test-validator",
+ "spl-associated-token-account-interface",
+ "spl-pod",
+ "spl-token-2022",
+ "spl-token-2022-interface",
+ "spl-token-client",
+ "spl-token-confidential-transfer-proof-generation",
+ "spl-token-group-interface",
+ "spl-token-interface",
+ "spl-token-metadata-interface",
+ "strum 0.27.2",
+ "strum_macros 0.27.2",
+ "tempfile",
+ "tokio",
+]
+
+[[package]]
 name = "five8"
 version = "0.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -10627,46 +10667,6 @@ dependencies = [
  "spl-token-metadata-interface",
  "spl-type-length-value",
  "thiserror 2.0.17",
-]
-
-[[package]]
-name = "spl-token-cli"
-version = "5.5.0"
-dependencies = [
- "assert_cmd",
- "base64 0.22.1",
- "clap 3.2.25",
- "console 0.16.1",
- "fireblocks-solana-clap-v3-utils",
- "fireblocks-solana-cli-config",
- "fireblocks-solana-cli-output",
- "futures 0.3.31",
- "libtest-mimic",
- "serde",
- "serde_json",
- "solana-account-decoder",
- "solana-client",
- "solana-commitment-config",
- "solana-logger",
- "solana-nonce",
- "solana-remote-wallet",
- "solana-sdk",
- "solana-sdk-ids",
- "solana-system-interface 3.0.0",
- "solana-test-validator",
- "spl-associated-token-account-interface",
- "spl-pod",
- "spl-token-2022",
- "spl-token-2022-interface",
- "spl-token-client",
- "spl-token-confidential-transfer-proof-generation",
- "spl-token-group-interface",
- "spl-token-interface",
- "spl-token-metadata-interface",
- "strum 0.27.2",
- "strum_macros 0.27.2",
- "tempfile",
- "tokio",
 ]
 
 [[package]]
