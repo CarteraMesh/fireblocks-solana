@@ -2,10 +2,6 @@ name: Release Solana CLI
 
 on:
   workflow_dispatch:
-    inputs:
-      tag:
-        description: "tag to attach binaries"
-        type: string
 permissions:
   contents: write
 
@@ -31,6 +27,15 @@ jobs:
         with:
           submodules: true
           fetch-depth: 0 # Need full history for git describe
+      - name: Check tag
+        id: tag
+        run: |
+          if [[ ! $GITHUB_REF == refs/tags/* ]]; then
+            echo "This action can only be run on tag events!"
+            exit 1
+          fi
+          echo _tag=${GITHUB_REF#refs/tags/} >> $GITHUB_OUTPUT
+
       - name: Init
         uses: carteramesh/ci/.github/actions/rust-init@main
 
@@ -48,7 +53,7 @@ jobs:
           mkdir -p release
           for i in fb-solana fb-spl-token; do
             cp target/${{ matrix.target }}/release/$i release/
-            tar -C release -czf ${i}-${{ inputs.tag }}-${{ matrix.name }}.tar.gz $i
+            tar -C release -czf ${i}-${{ steps.tag.outputs._tag }}-${{ matrix.name }}.tar.gz $i
           done
           ls -la release
 
@@ -56,16 +61,16 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: fb-solana-${{ matrix.name }}
-          path: release/fb-solana-${{ inputs.tag }}-${{ matrix.name }}.*
+          path: release/fb-solana-${{ steps.tag.outputs._tag }}-${{ matrix.name }}.*
       - name: Upload artifact spl-token
         uses: actions/upload-artifact@v4
         with:
           name: fb-spl-token-${{ matrix.name }}
-          path: release/fb-spl-token-${{ inputs.tag }}-${{ matrix.name }}.*
+          path: release/fb-spl-token-${{ steps.tag.outputs._tag }}-${{ matrix.name }}.*
       - name: Upload to GitHub Release
         uses: softprops/action-gh-release@v1
         with:
-          tag_name: ${{ inputs.tag }}
+          tag_name: ${{ steps.tag.outputs._tag }}
           files: |
-            fb-solana-${{ inputs.tag }}-${{ matrix.name }}.tar.gz
-            fb-spl-token-${{ inputs.tag }}-${{ matrix.name }}.tar.gz
+            fb-solana-${{ steps.tag.outputs._tag }}-${{ matrix.name }}.tar.gz
+            fb-spl-token-${{ steps.tag.outputs._tag }}-${{ matrix.name }}.tar.gz
