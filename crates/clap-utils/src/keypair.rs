@@ -33,9 +33,8 @@ use {
             keypair_from_seed_phrase_and_passphrase, null_signer::NullSigner, read_keypair,
             read_keypair_file, Keypair, Signature, Signer,
         },
-        signer::presigner::Presigner,
+        signer::{keypair::generate_seed_from_seed_phrase_and_passphrase, presigner::Presigner},
     },
-    solana_sdk::signer::keypair::generate_seed_from_seed_phrase_and_passphrase,
     std::{
         cell::RefCell,
         convert::TryFrom,
@@ -177,7 +176,8 @@ impl DefaultSigner {
                 })
                 .map_err(|_| {
                     std::io::Error::other(format!(
-                        "No default signer found, run \"solana-keygen new -o {}\" to create a new one",
+                        "No default signer found, run \"solana-keygen new -o {}\" to create a new \
+                         one",
                         self.path
                     ))
                 })?;
@@ -764,6 +764,7 @@ pub fn signer_from_path(
 /// )?;
 /// # Ok::<(), Box<dyn std::error::Error>>(())
 /// ```
+#[allow(unused_variables)]
 pub fn signer_from_path_with_config(
     matches: &ArgMatches,
     path: &str,
@@ -789,7 +790,8 @@ pub fn signer_from_path_with_config(
         }
         SignerSourceKind::Filepath(path) => match read_keypair_file(&path) {
             Err(e) => Err(std::io::Error::other(format!(
-                "could not read keypair file \"{path}\". Run \"solana-keygen new\" to create a keypair file: {e}"
+                "could not read keypair file \"{path}\". Run \"solana-keygen new\" to create a \
+                 keypair file: {e}"
             ))
             .into()),
             Ok(file) => Ok(Box::new(file)),
@@ -798,6 +800,12 @@ pub fn signer_from_path_with_config(
             let mut stdin = std::io::stdin();
             Ok(Box::new(read_keypair(&mut stdin)?))
         }
+        #[cfg(not(feature = "remote-wallet"))]
+        SignerSourceKind::Usb(locator) => Err(std::io::Error::other(format!(
+            "USB wallet support is not enabled for this platform {locator}."
+        ))
+        .into()),
+        #[cfg(feature = "remote-wallet")]
         SignerSourceKind::Usb(locator) => {
             if wallet_manager.is_none() {
                 *wallet_manager = maybe_wallet_manager()?;
@@ -823,16 +831,18 @@ pub fn signer_from_path_with_config(
             } else if config.allow_null_signer || matches.is_present(SIGN_ONLY_ARG.name) {
                 Ok(Box::new(NullSigner::new(&pubkey)))
             } else {
-                Err(std::io::Error::other(
-                    format!("missing signature for supplied pubkey: {pubkey}"),
-                )
+                Err(std::io::Error::other(format!(
+                    "missing signature for supplied pubkey: {pubkey}"
+                ))
                 .into())
             }
-        },
+        }
         #[cfg(feature = "fireblocks")]
-        SignerSourceKind::Fireblocks(profile) => {
-            Ok(Box::new(fireblocks_solana_signer::FireblocksSigner::try_from_config(&[profile], |tx| log::info!("{tx}"))?))
-        },
+        SignerSourceKind::Fireblocks(profile) => Ok(Box::new(
+            fireblocks_solana_signer::FireblocksSigner::try_from_config(&[profile], |tx| {
+                log::info!("{tx}")
+            })?,
+        )),
     }
 }
 
@@ -913,8 +923,8 @@ pub fn resolve_signer_from_path(
         }
         SignerSourceKind::Filepath(path) => match read_keypair_file(&path) {
             Err(e) => Err(std::io::Error::other(format!(
-                "could not read keypair file \"{path}\". \
-                    Run \"solana-keygen new\" to create a keypair file: {e}"
+                "could not read keypair file \"{path}\". Run \"solana-keygen new\" to create a \
+                 keypair file: {e}"
             ))
             .into()),
             Ok(_) => Ok(Some(path.to_string())),
@@ -953,7 +963,8 @@ pub const ASK_KEYWORD: &str = "ASK";
 pub const SKIP_SEED_PHRASE_VALIDATION_ARG: ArgConstant<'static> = ArgConstant {
     long: "skip-seed-phrase-validation",
     name: "skip_seed_phrase_validation",
-    help: "Skip validation of seed phrases. Use this if your phrase does not use the BIP39 official English word list",
+    help: "Skip validation of seed phrases. Use this if your phrase does not use the BIP39 \
+           official English word list",
 };
 
 /// Prompts user for a passphrase and then asks for confirmirmation to check for mistakes
@@ -1032,8 +1043,8 @@ pub fn keypair_from_path(
         }
         SignerSourceKind::Filepath(path) => match read_keypair_file(&path) {
             Err(e) => Err(std::io::Error::other(format!(
-                "could not read keypair file \"{path}\". \
-                    Run \"solana-keygen new\" to create a keypair file: {e}"
+                "could not read keypair file \"{path}\". Run \"solana-keygen new\" to create a \
+                 keypair file: {e}"
             ))
             .into()),
             Ok(file) => Ok(file),
@@ -1063,7 +1074,8 @@ pub fn keypair_from_seed_phrase(
     let seed_phrase = prompt_password(format!("[{keypair_name}] seed phrase: "))?;
     let seed_phrase = seed_phrase.trim();
     let passphrase_prompt = format!(
-        "[{keypair_name}] If this seed phrase has an associated passphrase, enter it now. Otherwise, press ENTER to continue: ",
+        "[{keypair_name}] If this seed phrase has an associated passphrase, enter it now. \
+         Otherwise, press ENTER to continue: ",
     );
 
     let keypair = if skip_validation {
@@ -1127,12 +1139,13 @@ fn sanitize_seed_phrase(seed_phrase: &str) -> String {
 
 #[cfg(test)]
 mod tests {
+    #[cfg(feature = "remote-wallet")]
+    use solana_remote_wallet::{locator::Manufacturer, remote_wallet::initialize_wallet_manager};
     use {
         super::*,
         crate::offline::OfflineArgs,
         assert_matches::assert_matches,
         clap::{value_t_or_exit, App, Arg},
-        solana_remote_wallet::{locator::Manufacturer, remote_wallet::initialize_wallet_manager},
         solana_sdk::signature::write_keypair_file,
         solana_system_interface::instruction::transfer,
         tempfile::{NamedTempFile, TempDir},
@@ -1238,27 +1251,30 @@ mod tests {
             } if p == relative_path_str)
         );
 
-        let usb = "usb://ledger".to_string();
-        let expected_locator = RemoteWalletLocator {
-            manufacturer: Manufacturer::Ledger,
-            pubkey: None,
-        };
-        assert_matches!(parse_signer_source(usb).unwrap(), SignerSource {
+        #[cfg(feature = "remote-wallet")]
+        {
+            let usb = "usb://ledger".to_string();
+            let expected_locator = RemoteWalletLocator {
+                manufacturer: Manufacturer::Ledger,
+                pubkey: None,
+            };
+            assert_matches!(parse_signer_source(usb).unwrap(), SignerSource {
                 kind: SignerSourceKind::Usb(u),
                 derivation_path: None,
                 legacy: false,
             } if u == expected_locator);
-        let usb = "usb://ledger?key=0/0".to_string();
-        let expected_locator = RemoteWalletLocator {
-            manufacturer: Manufacturer::Ledger,
-            pubkey: None,
-        };
-        let expected_derivation_path = Some(DerivationPath::new_bip44(Some(0), Some(0)));
-        assert_matches!(parse_signer_source(usb).unwrap(), SignerSource {
+            let usb = "usb://ledger?key=0/0".to_string();
+            let expected_locator = RemoteWalletLocator {
+                manufacturer: Manufacturer::Ledger,
+                pubkey: None,
+            };
+            let expected_derivation_path = Some(DerivationPath::new_bip44(Some(0), Some(0)));
+            assert_matches!(parse_signer_source(usb).unwrap(), SignerSource {
                 kind: SignerSourceKind::Usb(u),
                 derivation_path: d,
                 legacy: false,
             } if u == expected_locator && d == expected_derivation_path);
+        }
         // Catchall into SignerSource::Filepath fails
         let junk = "sometextthatisnotapubkeyorfile".to_string();
         assert!(Pubkey::from_str(&junk).is_err());
@@ -1332,12 +1348,16 @@ mod tests {
         let clap_matches = clap_app.get_matches_from(args);
         let keypair_str = value_t_or_exit!(clap_matches, "keypair", String);
 
+        #[cfg(feature = "remote-wallet")]
         let wallet_manager = initialize_wallet_manager()?;
 
         let signer = signer_from_path(
             &clap_matches,
             &keypair_str,
             "signer",
+            #[cfg(not(feature = "remote-wallet"))]
+            &mut None,
+            #[cfg(feature = "remote-wallet")]
             &mut Some(wallet_manager),
         )?;
 

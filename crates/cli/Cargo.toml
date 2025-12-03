@@ -62,7 +62,7 @@ solana-logger = { workspace = true }
 solana-nonce = { workspace = true }
 solana-packet = { workspace = true }
 solana-program-runtime = { workspace = true }
-solana-remote-wallet = { workspace = true, features = ["default"] }
+solana-remote-wallet = { workspace = true }
 solana-sbpf = { workspace = true, features = ["jit"] }
 solana-sdk = { workspace = true }
 solana-sdk-ids = { workspace = true }
