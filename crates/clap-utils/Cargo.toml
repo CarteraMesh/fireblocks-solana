@@ -23,6 +23,7 @@ path = "src/lib.rs"
 default = ["fireblocks"]
 fireblocks = ["log"]
 gpg = ["fireblocks-solana-signer/gpg"]
+remote-wallet = []
 
 [dependencies]
 chrono = { workspace = true, features = ["default"] }
@@ -33,7 +34,7 @@ rpassword = { workspace = true }
 solana-cluster-type = { workspace = true }
 solana-commitment-config = { workspace = true }
 solana-derivation-path = { workspace = true }
-solana-remote-wallet = { workspace = true, features = ["default"] }
+solana-remote-wallet = { workspace = true }
 solana-sdk = { workspace = true }
 thiserror = { workspace = true }
 tiny-bip39 = { workspace = true }
